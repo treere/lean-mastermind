@@ -1,0 +1,19 @@
+name = "playground"
+version = "0.1.0"
+defaultTargets = ["mastermind"]
+
+[[lean_lib]]
+name = "Mastermind"
+
+[[lean_exe]]
+name = "mastermind"
+root = "Main"
+
+[[require]]
+name = "LSpec"
+git = "https://github.com/argumentcomputer/LSpec"
+rev = "main"
+
+[[lean_exe]]
+name = "tests"
+root = "Tests"
