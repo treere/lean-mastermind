@@ -20,10 +20,11 @@ Input: 4 digits from 1 to 6 (`1234`), `q` to quit.
 | file | content |
 |---|---|
 | `Mastermind.lean` | pure logic (scoring) + specs and theorems |
-| `Main.lean` | parsing, I/O loop, `main` |
-| `Tests.lean` | unit tests and domain tests, with LSpec |
+| `Parse.lean` | text ↔ code conversion, pure so it is testable from Lean |
+| `Main.lean` | I/O loop, `main` |
+| `Tests.lean` | scoring, parsing and domain tests, with LSpec |
 | `Checks.lean` | exhaustive comparison against a reference implementation |
-| `integration_test.sh` | boundary tests against the binary |
+| `integration_test.sh` | binary-level tests: argv, stdin/EOF, exit status |
 
 ## What is proven
 
@@ -61,14 +62,16 @@ That is an exhaustive test, not a proof: it holds for these parameters only.
 The naive version (the one that does not consume matched pegs) is wrong in
 514,740 cases, for example with secret `1112` and guess `1111`.
 
-Parsing, I/O and the loop live outside the verified boundary and are covered by
+Parsing, I/O and the loop live outside the verified boundary. Parsing is pure
+and covered by LSpec in `Tests.lean`; only what a Lean test cannot observe
+(argv handling, stdin/EOF, exit status) is checked against the binary by
 `integration_test.sh`.
 
 ## Tests
 
 ```bash
-lake build tests && ./.lake/build/bin/tests   # LSpec, exit code 1 on failure
-./integration_test.sh                        # binary-level tests
+lake build tests && ./.lake/build/bin/tests   # 15 LSpec tests, exit code 1 on failure
+./integration_test.sh                        # 3 binary-level tests
 lake env lean Checks.lean                    # exhaustive comparison
 ```
 

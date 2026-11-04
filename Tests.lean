@@ -1,4 +1,4 @@
-import Mastermind
+import Parse
 import LSpec
 
 open Mastermind LSpec
@@ -28,10 +28,21 @@ def scoreSuite : TestSeq :=
     test "3 exact and 0 misplaced, not 1" (score [2,2,2,2] [2,2,2,4] = { exact := 3, misplaced := 0 }) $
     test "no peg in common" (score [1,1,2,2] [5,5,6,6] = { exact := 0, misplaced := 0 })
 
+def parseSuite : TestSeq :=
+  group "parsing" $
+    test "plain digits" (parseGuess "1234" = some [1,2,3,4]) $
+    test "spaces are ignored" (parseGuess "1 2 3 4" = some [1,2,3,4]) $
+    test "zero is rejected" (parseGuess "0123" = none) $
+    test "out-of-range digit is rejected" (parseGuess "9999" = none) $
+    test "wrong length is rejected" (parseGuess "123" = none) $
+    test "letters are rejected" (parseGuess "abcd" = none) $
+    test "render a code" (showCode [1,2,3,4] = "1234") $
+    test "render feedback" (showFeedback { exact := 2, misplaced := 1 } = "●●○")
+
 def domainSuite : TestSeq :=
   group "domain" $
     test "bound on every pair of codes" boundHoldsEverywhere $
     test "every code only uses pegs 1..numColors" domainIsWellFormed
 
 def main (args : List String) : IO UInt32 :=
-  lspecIO (.ofList [("scoring", [scoreSuite]), ("domain", [domainSuite])]) args
+  lspecIO (.ofList [("scoring", [scoreSuite]), ("parsing", [parseSuite]), ("domain", [domainSuite])]) args

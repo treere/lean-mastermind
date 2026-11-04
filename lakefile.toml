@@ -4,6 +4,7 @@ defaultTargets = ["mastermind"]
 
 [[lean_lib]]
 name = "Mastermind"
+globs = ["Mastermind", "Parse"]
 
 [[lean_exe]]
 name = "mastermind"
