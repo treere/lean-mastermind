@@ -2,25 +2,25 @@ import Std
 
 namespace Mastermind
 
-/-- Un peg è un numero: i valori validi sono `1 .. numColors`. -/
+/-- A peg is a number: valid values are `1 .. numColors`. -/
 abbrev Peg := Nat
 abbrev Code := List Peg
 
 def numPegs : Nat := 4
 def numColors : Nat := 6
 
-/-- Il peg è un numero ammesso dal gioco? -/
+/-- Is the peg a number the game accepts? -/
 def validPeg (p : Peg) : Bool := 0 < p && p ≤ numColors
 
-/-! ## Il cuore del gioco: il punteggio
+/-! ## The core of the game: scoring
 
-`splitEq` separa le coppie "stesso peg nella stessa posizione" dai residui.
-`matchCount` conta i peg abbinabili fuori posizione, consumandoli
-(ogni peg segreto può essere usato una volta sola: è la regola che tutti
-sbagliano implementando Mastermind a mano).
+`splitEq` splits equal-position pairs from the leftovers.
+`matchCount` counts the pegs matchable out of position, consuming them
+(each secret peg can be used once: the rule everybody gets wrong when
+implementing Mastermind by hand).
 
-Nessuna delle due funzioni dipende da `numColors` o `numPegs`: valgono per
-qualunque lista, e le dimostrazioni infatti non nominano né 4 né 6. -/
+Neither function depends on `numColors` or `numPegs`: both work on any list,
+and the proofs below never mention 4 or 6. -/
 
 def splitEq : Code → Code → Code × Code
   | [], _ => ([], [])
@@ -45,7 +45,7 @@ def score (guess secret : Code) : Feedback :=
 
 def won (fb : Feedback) : Bool := fb.exact == numPegs
 
-/-! ## Specifiche e teoremi -/
+/-! ## Specs and theorems -/
 
 theorem splitEq_fst_len (a b : Code) : (splitEq a b).1.length ≤ a.length := by
   induction a generalizing b with
@@ -66,8 +66,8 @@ theorem matchCount_le (xs pool : Code) : matchCount xs pool ≤ xs.length := by
     · simp only [List.length_cons]; have := ih (pool.erase x); omega
     · simp only [List.length_cons]; have := ih pool; omega
 
-/-- SPEC: il gioco non può mai assegnare più peg di quanti ne ha il codice.
-    Vale per liste di qualunque lunghezza: non assume 4 peg né 6 numeri. -/
+/-- SPEC: the game can never award more pegs than the code has.
+    Holds for codes of any length: it assumes neither 4 pegs nor 6 numbers. -/
 theorem score_bound (g s : Code) : (score g s).exact + (score g s).misplaced ≤ g.length := by
   simp only [score]
   have h1 := splitEq_fst_len g s
@@ -80,7 +80,7 @@ theorem splitEq_self : ∀ c : Code, splitEq c c = ([], [])
       simp only [splitEq, splitEq_self xs]
       simp
 
-/-- SPEC: indovinare il codice segreto dà tutti peg esatti e zero fuori posto. -/
+/-- SPEC: guessing the secret scores every peg exact and none misplaced. -/
 theorem score_self (c : Code) : score c c = { exact := c.length, misplaced := 0 } := by
   simp [score, splitEq_self, matchCount]
 

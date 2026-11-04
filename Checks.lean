@@ -2,24 +2,24 @@ import Mastermind
 
 open Mastermind
 
-/-- Tutti i codici di lunghezza `n` con peg presi da `1 .. k`. -/
+/-- Every code of length `n` with pegs drawn from `1 .. k`. -/
 def codesAux : Nat → Nat → List Code
   | 0, _ => [[]]
   | n + 1, k => ((List.range k).map (· + 1)).flatMap fun c => (codesAux n k).map fun cs => c :: cs
 
 def allCodes : List Code := codesAux numPegs numColors
 
-/-- Riferimento indipendente: punteggio come intersezione di multinsiemi,
-    min(occorrenze nel tentativo, occorrenze nel segreto) sommato sui numeri,
-    meno gli esatti. Non usa né `splitEq` né `matchCount`. -/
+/-- Independent reference: score as multiset intersection,
+    min(occurrences in guess, occurrences in secret) summed over the numbers,
+    minus the exact matches. Uses neither `splitEq` nor `matchCount`. -/
 def oracleScore (g s : Code) : Feedback :=
   let exact := (g.zip s).countP fun p => p.1 == p.2
   let inter := ((List.range numColors).map (· + 1)).foldl
     (fun acc c => acc + min (List.count c g) (List.count c s)) 0
   { exact := exact, misplaced := inter - exact }
 
-/-- Implementazione INGENUA: "fuori posto ma presente nel segreto", senza
-    consumare i peg. Errore classico. -/
+/-- NAIVE implementation: "misplaced but present in the secret", without
+    consuming the pegs. The classic mistake. -/
 def naiveScore (g s : Code) : Feedback :=
   let pairs := g.zip s
   { exact := pairs.countP (fun p => p.1 == p.2)
@@ -40,14 +40,14 @@ def showCode (c : Code) : String := String.join (c.map fun p => toString p)
 
 def main : IO Unit := do
   let total := allCodes.length * allCodes.length
-  IO.println s!"codici su {numPegs} peg e numeri 1..{numColors}: {allCodes.length}, coppie: {total}"
-  IO.println s!"scarto dalla versione verificata (splitEq + matchCount): {countDisagreements score}"
-  IO.println s!"scarto dalla versione ingenua: {countDisagreements naiveScore}"
+  IO.println s!"codes with {numPegs} pegs and numbers 1..{numColors}: {allCodes.length}, pairs: {total}"
+  IO.println s!"disagreements of the verified version (splitEq + matchCount): {countDisagreements score}"
+  IO.println s!"disagreements of the naive version: {countDisagreements naiveScore}"
   match firstDisagreement naiveScore with
   | some (g, s) =>
-      IO.println s!"esempio: segreto {showCode s}, tentativo {showCode g}"
-      IO.println s!"  ingenua: {(naiveScore g s).exact} esatti / {(naiveScore g s).misplaced} fuori posto"
-      IO.println s!"  corretta: {(oracleScore g s).exact} esatti / {(oracleScore g s).misplaced} fuori posto"
-  | none => IO.println "nessuna divergenza"
+      IO.println s!"example: secret {showCode s}, guess {showCode g}"
+      IO.println s!"  naive:   {(naiveScore g s).exact} exact / {(naiveScore g s).misplaced} misplaced"
+      IO.println s!"  correct: {(oracleScore g s).exact} exact / {(oracleScore g s).misplaced} misplaced"
+  | none => IO.println "no disagreement"
 
 #eval main
